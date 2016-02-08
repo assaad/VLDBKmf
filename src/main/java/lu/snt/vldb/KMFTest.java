@@ -116,7 +116,7 @@ public class KMFTest {
                 KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
                 objId = object.uuid();
                 object=null;
-                
+
                 long unit = 1000;
                 long start,end;
                 double res;
