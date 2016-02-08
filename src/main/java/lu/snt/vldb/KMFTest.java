@@ -168,7 +168,6 @@ public class KMFTest {
         final long timeOrigin = 1000l;
 
         final int exp=5;
-        int universes =3;
         model.connect(new KCallback() {
             @Override
             public void on(Object o) {
@@ -242,12 +241,19 @@ public class KMFTest {
 
     public static double get(long uId, long time) {
         final Object[] myvalue = {null};
+        final CountDownLatch latch = new CountDownLatch(1);
 
         model.lookup(uId,time,objId, new KCallback<KObject>() {
             public void on(KObject kObject) {
                 myvalue[0] = kObject.get(kObject.metaClass().attribute("value"));
+                latch.countDown();
             }
         });
+        try {
+                       latch.await();
+            } catch (InterruptedException e) {
+                        e.printStackTrace();
+            }
         return (Double) myvalue[0];
     }
 
