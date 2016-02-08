@@ -4,12 +4,17 @@ package lu.snt.vldb;
         import org.kevoree.modeling.KModel;
         import org.kevoree.modeling.KObject;
         import org.kevoree.modeling.KUniverse;
+        import org.kevoree.modeling.cdn.KContentDeliveryDriver;
         import org.kevoree.modeling.memory.manager.DataManagerBuilder;
+        import org.kevoree.modeling.memory.manager.internal.KInternalDataManager;
         import org.kevoree.modeling.memory.strategy.impl.OffHeapMemoryStrategy;
         import org.kevoree.modeling.meta.KMetaClass;
         import org.kevoree.modeling.meta.KPrimitiveTypes;
         import org.kevoree.modeling.meta.impl.MetaModel;
+        import org.kevoree.modeling.plugin.ChroniclePlugin;
         import org.kevoree.modeling.scheduler.impl.DirectScheduler;
+
+        import java.io.File;
         import java.util.concurrent.CountDownLatch;
 
 /**
@@ -21,7 +26,8 @@ public class KMFTest {
     private static MetaModel dynamicMetaModel;
     private static KMetaClass sensorMetaClass;
     private static KModel model;
-    private static KObject object;
+    private static long objId;
+    private static int saveStep=1000; //save every 100 000 values
 
     public static void createMetaModel(){
 
@@ -30,7 +36,10 @@ public class KMFTest {
         sensorMetaClass = dynamicMetaModel.addMetaClass("Sensor");
         sensorMetaClass.addAttribute("value", KPrimitiveTypes.DOUBLE);
         sensorMetaClass.addRelation("siblings", sensorMetaClass, null);
-        model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new OffHeapMemoryStrategy()).create().withScheduler(new DirectScheduler()).build());
+       // model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new OffHeapMemoryStrategy()).withScheduler(new DirectScheduler()).build());
+
+        KContentDeliveryDriver levelDBDriver = new ChroniclePlugin(10000000,null);
+        model = dynamicMetaModel.createModel(DataManagerBuilder.create().withContentDeliveryDriver(levelDBDriver).withScheduler(new DirectScheduler()).build());
 
     }
 
@@ -55,7 +64,9 @@ public class KMFTest {
         model.connect(new KCallback() {
             @Override
             public void on(Object o) {
-                object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
+                KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
+                objId = object.uuid();
+                object=null;
 
                 long start,end;
                 double res;
@@ -102,7 +113,10 @@ public class KMFTest {
         model.connect(new KCallback() {
             @Override
             public void on(Object o) {
-                object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
+                KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
+                objId = object.uuid();
+                object=null;
+                
                 long unit = 1000;
                 long start,end;
                 double res;
@@ -158,7 +172,10 @@ public class KMFTest {
         model.connect(new KCallback() {
             @Override
             public void on(Object o) {
-                object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
+                KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
+                objId = object.uuid();
+                object=null;
+
                 long unit = 1000;
                 long start,end;
                 double res;
@@ -167,6 +184,9 @@ public class KMFTest {
 
                 for(long i=0;i<timestamped;i++){
                     insert(0,timeOrigin+i,i*0.3);
+                    if(i%saveStep==0){
+                        save();
+                    }
                 }
 
                 end=System.nanoTime();
@@ -199,36 +219,35 @@ public class KMFTest {
     }
 
     private static void insert(long uId, long time, final double value) {
-        final CountDownLatch latch = new CountDownLatch(1);
-        model.universe(uId).time(time).lookup(object.uuid(), new KCallback<KObject>() {
+
+        model.lookup(uId,time,objId, new KCallback<KObject>() {
             public void on(KObject kObject) {
                 kObject.set(kObject.metaClass().attribute("value"), value);
-                latch.countDown();
+               // latch.countDown();
 
             }
         });
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
+
+
+    public static void save(){
+        model.save(new KCallback() {
+            public void on(Object o) {
+                KInternalDataManager ff= (KInternalDataManager) model.manager();
+                System.out.println(ff.spaceSize());
+            }
+        });
+    }
+
 
     public static double get(long uId, long time) {
         final Object[] myvalue = {null};
-        final CountDownLatch latch = new CountDownLatch(1);
-        model.universe(uId).time(time).lookup(object.uuid(), new KCallback<KObject>() {
+
+        model.lookup(uId,time,objId, new KCallback<KObject>() {
             public void on(KObject kObject) {
                 myvalue[0] = kObject.get(kObject.metaClass().attribute("value"));
-                latch.countDown();
             }
-
         });
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return (Double) myvalue[0];
     }
 
