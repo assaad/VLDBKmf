@@ -27,7 +27,7 @@ public class KMFTest {
     private static KMetaClass sensorMetaClass;
     private static KModel model;
     private static long objId;
-    private static int saveStep=1000; //save every 100 000 values
+    private static int saveStep=10000000; //save every 100 000 values
 
     public static void createMetaModel(){
 
@@ -38,8 +38,11 @@ public class KMFTest {
         sensorMetaClass.addRelation("siblings", sensorMetaClass, null);
        // model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new OffHeapMemoryStrategy()).withScheduler(new DirectScheduler()).build());
 
-        KContentDeliveryDriver levelDBDriver = new ChroniclePlugin(10000000,null);
-        model = dynamicMetaModel.createModel(DataManagerBuilder.create().withContentDeliveryDriver(levelDBDriver).withScheduler(new DirectScheduler()).build());
+        model = dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+
+
+        // KContentDeliveryDriver levelDBDriver = new ChroniclePlugin(10000000,null);
+       // model = dynamicMetaModel.createModel(DataManagerBuilder.create().withContentDeliveryDriver(levelDBDriver).withScheduler(new DirectScheduler()).build());
 
     }
 
@@ -47,12 +50,8 @@ public class KMFTest {
     public static void main(String[] arg) {
         //Create initial metamodel and a model instance from the metamodel.
 
-
         createMetaModel();
-        //    testMultiverse(10000000, 1, (10-1) *1000000);
-        testOneUniverse(Long.decode(arg[0]));
-
-
+        testStairs(10000);
     }
 
     public static double[] testStairs(int ts) {
@@ -88,7 +87,9 @@ public class KMFTest {
 
                 for(int j=0;j<exp;j++) {
                     for (int i = 0; i < timestamped; i++) {
-                        get(timestamped-1, timeOrigin + i) ;
+                        if (get(timestamped-1, timeOrigin + i) != i * 0.3) {
+                            System.out.println("error");
+                        }
                     }
                 }
 
@@ -173,7 +174,7 @@ public class KMFTest {
             public void on(Object o) {
                 KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
                 objId = object.uuid();
-                object=null;
+                //object=null;
 
                 long unit = 1000;
                 long start,end;
@@ -181,10 +182,11 @@ public class KMFTest {
 
                 start=System.nanoTime();
 
+
                 for(long i=0;i<timestamped;i++){
                     insert(0,timeOrigin+i,i*0.3);
                     if(i%saveStep==0){
-                        save();
+                       save();
                     }
                 }
 
@@ -212,9 +214,6 @@ public class KMFTest {
 
     private static void split(int parent) {
         KUniverse uni = model.universe(parent).diverge();
-
-
-
     }
 
     private static void insert(long uId, long time, final double value) {
@@ -222,8 +221,6 @@ public class KMFTest {
         model.lookup(uId,time,objId, new KCallback<KObject>() {
             public void on(KObject kObject) {
                 kObject.set(kObject.metaClass().attribute("value"), value);
-               // latch.countDown();
-
             }
         });
     }
