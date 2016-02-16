@@ -52,7 +52,7 @@ public class InfluxDbTest {
 
         influxDB.createDatabase(dbName);
         // Flush every 2000 Points, at least every 100ms
-        influxDB.enableBatch(100000, 10000, TimeUnit.MILLISECONDS);
+        influxDB.enableBatch(10000, 10000, TimeUnit.MILLISECONDS);
     }
 
 
@@ -60,7 +60,7 @@ public class InfluxDbTest {
         createdb();
 
 
-        testoneUniverse(1000000);
+        testoneUniverse(10000000);
 
 
 

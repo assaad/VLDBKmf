@@ -11,7 +11,6 @@ package lu.snt.vldb;
         import org.kevoree.modeling.meta.KMetaClass;
         import org.kevoree.modeling.meta.KPrimitiveTypes;
         import org.kevoree.modeling.meta.impl.MetaModel;
-        import org.kevoree.modeling.plugin.ChroniclePlugin;
         import org.kevoree.modeling.scheduler.impl.DirectScheduler;
 
         import java.io.File;
