@@ -41,7 +41,7 @@ public class TestOneUniverse {
 
 
        long val = Long.parseLong(arg[0]);
-        int num = Integer.parseInt(arg[1]);
+        int num = Integer.parseInt(arg[1])+1;
 
         Gaussian g = new Gaussian();
 
@@ -49,19 +49,28 @@ public class TestOneUniverse {
             double[] d = benchmark(val);
             System.gc();
             try {
-                Thread.sleep(30);
+                Thread.sleep(100);
             } catch (Exception ex) {
 
             }
+            if(i==0){
+                System.out.println("Round 0:" +d[0]+" "+d[1]);
+            }
+            if(i==1){
+                g.feed(d);
+                System.out.println("Round 1:" +d[0]+" "+d[1]);
+            }
 
-            g.feed(d);
+            //g.feed(d);
             if (i > 1) {
+                g.feed(d);
                 System.out.print("Round " + i + ": ");
                 g.print();
             }
         }
 
         System.out.println("final result "+val);
+        System.out.print(val+" ");
         g.print();
 
 
@@ -72,11 +81,11 @@ public class TestOneUniverse {
         MetaModel dynamicMetaModel= new MetaModel("MyMetaModel");
         final KMetaClass sensorMetaClass= dynamicMetaModel.addMetaClass("Sensor");
         sensorMetaClass.addAttribute("value", KPrimitiveTypes.DOUBLE);
-        int threads = Runtime.getRuntime().availableProcessors()-1;
-        System.out.println("Number of threads: "+threads);
+        //int threads = Runtime.getRuntime().availableProcessors()-1;
+        //System.out.println("Number of threads: "+threads);
 
-        final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(20000)).withScheduler(new AsyncScheduler().workers(threads)).build());
-      //  final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+       // final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(20000)).withScheduler(new AsyncScheduler().workers(threads)).build());
+        final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
 
         final double[] res=new double[2];
 
@@ -84,6 +93,8 @@ public class TestOneUniverse {
         final CountDownLatch cdt=new CountDownLatch((int) valuesToInsert);
         final CountDownLatch cdt2=new CountDownLatch((int) valuesToInsert);
         final CountDownLatch cdt3=new CountDownLatch(1);
+        final long[] compare=new long[1];
+        compare[0]=1000000;
 
         model.connect(new KCallback() {
             @Override
@@ -94,7 +105,7 @@ public class TestOneUniverse {
                 long start,end;
                 double speed;
                 start=System.nanoTime();
-
+                final long finalStart2 = start;
                 for(long i=0;i<valuesToInsert;i++) {
 
                     final long ii= i;
@@ -102,9 +113,18 @@ public class TestOneUniverse {
                     model.lookup(0, timeOrigin + ii, uuid, new KCallback<KObject>() {
                         @Override
                         public void on(KObject kObject) {
-                            System.out.println("Inserting " + ii + " done");
+                          //  System.out.println("Inserting " + ii + " done");
                             kObject.set(kObject.metaClass().attribute("value"), value);
                             cdt.countDown();
+                            long x=valuesToInsert-cdt.getCount();
+                            if(x==compare[0]){
+                                double end2=System.nanoTime();
+                                double speed2=(end2- finalStart2);
+                                double speed3=speed2/(x);
+                                double perm=1000000.0/speed3;
+                                compare[0]=compare[0]*2;
+                                System.out.println("Count "+(x/1000000)+"M, time per value: "+speed3+", per sec:  "+perm+" k/s");
+                            }
                         }
                     });
                 }
@@ -119,9 +139,13 @@ public class TestOneUniverse {
                     end=System.nanoTime();
                     speed=(end-start)/(valuesToInsert);
                     res[0]= speed;
-                    System.out.println("Inserted "+valuesToInsert+" values in: "+speed+" ns/val");
+                double perm=1000000.0/speed;
+                System.out.println("Count "+(valuesToInsert/1000000)+"M, insert per value: "+speed+", per sec:  "+perm+" k/s");
+                  //  System.out.println("Inserted "+valuesToInsert+" values in: "+speed+" ns/val");
 
+                compare[0]=1000000;
                 start=System.nanoTime();
+                final long finalStart = start;
               //  counter.set(0);
                 for(long i=0;i<valuesToInsert;i++) {
                     final long ii= i;
@@ -135,6 +159,15 @@ public class TestOneUniverse {
                                 System.out.println("Error in reading");
                             }
                             cdt2.countDown();
+                            long x=valuesToInsert-cdt2.getCount();
+                            if(x==compare[0]){
+                                double end2=System.nanoTime();
+                                double speed2=(end2- finalStart);
+                                double speed3=speed2/(x);
+                                double perm=1000000.0/speed3;
+                                compare[0]=compare[0]*2;
+                                System.out.println("Count "+(x/1000000)+"M, read per value: "+speed3+", per sec:  "+perm+" k/s");
+                            }
                         }
                     });
                 }
@@ -147,8 +180,10 @@ public class TestOneUniverse {
 
                 end=System.nanoTime();
                 speed=(end-start)/(valuesToInsert);
-                res[0]= speed;
-                System.out.println("Read "+valuesToInsert+" values in: "+speed+" ns/val");
+                perm=1000000.0/speed;
+                System.out.println("Count "+(valuesToInsert/1000000)+"M, time per value: "+speed+", per sec:  "+perm+" k/s");
+                res[1]= speed;
+               // System.out.println("Read "+valuesToInsert+" values in: "+speed+" ns/val");
                 cdt3.countDown();
 
 

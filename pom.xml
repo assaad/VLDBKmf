@@ -50,7 +50,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>lu.snt.vldb.TestOneUniverse</mainClass>
+                            <mainClass>lu.snt.vldb.TestOne</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
