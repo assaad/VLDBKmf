@@ -4,9 +4,7 @@ import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.KModel;
 import org.kevoree.modeling.KObject;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
-import org.kevoree.modeling.memory.space.impl.press.PressOffHeapChunkSpace;
-import org.kevoree.modeling.memory.strategy.impl.PressHeapMemoryStrategy;
-import org.kevoree.modeling.memory.strategy.impl.PressOffHeapMemoryStrategy;
+import org.kevoree.modeling.memory.space.impl.press.PressHeapChunkSpace;
 import org.kevoree.modeling.meta.KMetaClass;
 import org.kevoree.modeling.meta.KPrimitiveTypes;
 import org.kevoree.modeling.meta.impl.MetaModel;
@@ -14,13 +12,10 @@ import org.kevoree.modeling.scheduler.impl.AsyncScheduler;
 import org.kevoree.modeling.scheduler.impl.DirectScheduler;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by assaad on 16/02/16.
@@ -56,11 +51,11 @@ public class TestOne {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressOffHeapMemoryStrategy(valuesToInsert*2)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new AsyncScheduler().workers(t)).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(valuesToInsert*2)).withScheduler(new DirectScheduler()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new DirectScheduler()).build());
             }
 
 
@@ -98,12 +93,12 @@ public class TestOne {
                                 kObject.set(kObject.metaClass().attribute("value"), value);
                                 cdt.countDown();
                                 long x = valuesToInsert - cdt.getCount();
-                                if (x == compare[0]||(x>0&&x%50000000==0)) {
+                                if (x == compare[0] || (x > 0 && x % 50000000 == 0)) {
                                     double end2 = System.nanoTime();
                                     double speed2 = (end2 - finalStart2);
                                     double speed3 = speed2 / (x);
                                     double perm = 1000000.0 / speed3;
-                                    if(x == compare[0]) {
+                                    if (x == compare[0]) {
                                         compare[0] = compare[0] * 2;
                                     }
                                     System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
@@ -144,12 +139,12 @@ public class TestOne {
                                 }
                                 cdt2.countDown();
                                 long x = valuesToInsert - cdt2.getCount();
-                                if (x == compare[0]||(x>0&&x%50000000==0)) {
+                                if (x == compare[0] || (x > 0 && x % 50000000 == 0)) {
                                     double end2 = System.nanoTime();
                                     double speed2 = (end2 - finalStart);
                                     double speed3 = speed2 / (x);
                                     double perm = 1000000.0 / speed3;
-                                    if(x == compare[0]) {
+                                    if (x == compare[0]) {
                                         compare[0] = compare[0] * 2;
                                     }
                                     System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");

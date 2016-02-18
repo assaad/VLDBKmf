@@ -3,10 +3,9 @@ package lu.snt.vldb;
 import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.KModel;
 import org.kevoree.modeling.KObject;
-import org.kevoree.modeling.extrapolation.impl.DoublePolynomialExtrapolation;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
-import org.kevoree.modeling.memory.strategy.impl.PressHeapMemoryStrategy;
-import org.kevoree.modeling.memory.strategy.impl.PressOffHeapMemoryStrategy;
+import org.kevoree.modeling.memory.manager.internal.KInternalDataManager;
+import org.kevoree.modeling.memory.space.impl.press.PressHeapChunkSpace;
 import org.kevoree.modeling.meta.KMetaAttribute;
 import org.kevoree.modeling.meta.KMetaClass;
 import org.kevoree.modeling.meta.KPrimitiveTypes;
@@ -30,7 +29,7 @@ public class TestOneLookupAll {
             final long timeOrigin = 1000;
             MetaModel dynamicMetaModel = new MetaModel("MyMetaModel");
             final KMetaClass sensorMetaClass = dynamicMetaModel.addMetaClass("Sensor");
-            final KMetaAttribute attribute= sensorMetaClass.addAttribute("value", KPrimitiveTypes.DOUBLE);
+            final KMetaAttribute attribute = sensorMetaClass.addAttribute("value", KPrimitiveTypes.DOUBLE);
             int threads = Runtime.getRuntime().availableProcessors();
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -54,13 +53,12 @@ public class TestOneLookupAll {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressOffHeapMemoryStrategy(valuesToInsert*2)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new AsyncScheduler().workers(t)).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(valuesToInsert*2)).withScheduler(new DirectScheduler()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new DirectScheduler()).build());
             }
-
 
 
             // final AtomicLong counter = new AtomicLong(0);
@@ -69,14 +67,14 @@ public class TestOneLookupAll {
             final CountDownLatch cdt3 = new CountDownLatch(1);
             final long[] compare = new long[1];
             compare[0] = 1000000;
-            final int split=Math.min(10,tsp);
-            final int dim=(tsp-1)/split+1;
+            final int split = Math.min(10, tsp);
+            final int dim = (tsp - 1) / split + 1;
 
             final long[][] times = new long[dim][split];
-            int count=0;
-            for(int j=0;j<dim;j++){
-                for(int i=0;i<split;i++){
-                    times[j][i] =timeOrigin+count;
+            int count = 0;
+            for (int j = 0; j < dim; j++) {
+                for (int i = 0; i < split; i++) {
+                    times[j][i] = timeOrigin + count;
                     count++;
                 }
             }
@@ -106,19 +104,29 @@ public class TestOneLookupAll {
                                 @Override
                                 public void on(KObject[] kObjects) {
                                     double value;
-                                    value = uuid*7 +  0.7*jj;
-                                    for (int k=0;k<kObjects.length;k++) {
+                                    value = uuid * 7 + 0.7 * jj;
+                                    for (int k = 0; k < kObjects.length; k++) {
+
+//                                        System.err.println(kObjects[k].now());
+
+
+
+
                                         kObjects[k].set(attribute, value);
 
+                                    //    if (kObjects[k].now() == 1018) {
+                                      //      ( (KInternalDataManager) model.manager()).printDebug();
+                                       // }
+
                                         //BUG can be caught here
-                                        if(kObjects[k].now()==1018){
-                                            System.out.println("id is:" + uuid+ " time is: "+times[jj][k] +" or "+ kObjects[k].now() +" value is "+value+" inserted "+(Double) kObjects[k].get(attribute));
+                                        if (kObjects[k].now() == 1018) {
+                                            System.out.println("id is:" + uuid + " time is: " + times[jj][k] + " or " + kObjects[k].now() + " value is " + value + " inserted " + (Double) kObjects[k].get(attribute));
                                             model.lookup(0, kObjects[k].now(), kObjects[k].uuid(), new KCallback<KObject>() {
                                                 @Override
                                                 public void on(KObject kObject) {
-                                                    if(kObject.now()==1018){
+                                                    if (kObject.now() == 1018) {
                                                         System.out.println("however after lookup: ");
-                                                        System.out.println("id is:" + uuid+ " time is: "+kObject.now() +" value is " + kObject.get(attribute));
+                                                        System.out.println("id is:" + uuid + " time is: " + kObject.now() + " value is " + kObject.get(attribute));
 
                                                     }
 
@@ -147,8 +155,8 @@ public class TestOneLookupAll {
                     model.lookup(0, 1018, 1, new KCallback<KObject>() {
                         @Override
                         public void on(KObject kObject) {
-                            if(kObject.now()==1018){
-                                System.out.println("outside: "+ kObject.get(attribute));
+                            if (kObject.now() == 1018) {
+                                System.out.println("outside: " + kObject.get(attribute));
                             }
 
                         }
@@ -174,9 +182,6 @@ public class TestOneLookupAll {
                     //  counter.set(0);
 
 
-
-
-
                     for (int i = 0; i < ts; i++) {
                         final long uuid = uids[i];
                         for (int j = 0; j < dim; j++) {
@@ -185,12 +190,12 @@ public class TestOneLookupAll {
                                 @Override
                                 public void on(KObject[] kObjects) {
                                     double value;
-                                    value = uuid*7 + 0.7*jj;
-                                    for (int k=0;k<kObjects.length;k++) {
-                                        double v= (Double)kObjects[k].get(attribute);
+                                    value = uuid * 7 + 0.7 * jj;
+                                    for (int k = 0; k < kObjects.length; k++) {
+                                        double v = (Double) kObjects[k].get(attribute);
 
-                                        if(v!=value){
-                                            System.out.println("Error in reading "+ kObjects[k].now()+" id: "+uuid+" expected: "+value+" got: "+v);
+                                        if (v != value) {
+                                            System.out.println("Error in reading " + kObjects[k].now() + " id: " + uuid + " expected: " + value + " got: " + v);
                                         }
                                         value += 0.7;
                                         cdt2.countDown();
