@@ -6,7 +6,6 @@ import org.kevoree.modeling.KObject;
 import org.kevoree.modeling.defer.KDefer;
 import org.kevoree.modeling.defer.impl.Defer;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
-import org.kevoree.modeling.memory.strategy.impl.PressHeapMemoryStrategy;
 import org.kevoree.modeling.meta.KMetaClass;
 import org.kevoree.modeling.meta.KPrimitiveTypes;
 import org.kevoree.modeling.meta.impl.MetaModel;

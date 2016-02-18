@@ -53,11 +53,11 @@ public class TestOneLookupAll {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 2)).withScheduler(new AsyncScheduler().workers(t)).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new DirectScheduler()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 2)).withScheduler(new DirectScheduler()).build());
             }
 
 
@@ -106,33 +106,7 @@ public class TestOneLookupAll {
                                     double value;
                                     value = uuid * 7 + 0.7 * jj;
                                     for (int k = 0; k < kObjects.length; k++) {
-
-//                                        System.err.println(kObjects[k].now());
-
-
-
-
                                         kObjects[k].set(attribute, value);
-
-                                    //    if (kObjects[k].now() == 1018) {
-                                      //      ( (KInternalDataManager) model.manager()).printDebug();
-                                       // }
-
-                                        //BUG can be caught here
-                                        if (kObjects[k].now() == 1018) {
-                                            System.out.println("id is:" + uuid + " time is: " + times[jj][k] + " or " + kObjects[k].now() + " value is " + value + " inserted " + (Double) kObjects[k].get(attribute));
-                                            model.lookup(0, kObjects[k].now(), kObjects[k].uuid(), new KCallback<KObject>() {
-                                                @Override
-                                                public void on(KObject kObject) {
-                                                    if (kObject.now() == 1018) {
-                                                        System.out.println("however after lookup: ");
-                                                        System.out.println("id is:" + uuid + " time is: " + kObject.now() + " value is " + kObject.get(attribute));
-
-                                                    }
-
-                                                }
-                                            });
-                                        }
                                         value += 0.7;
                                         cdt.countDown();
                                     }
@@ -152,16 +126,6 @@ public class TestOneLookupAll {
                         }
                     }
 
-                    model.lookup(0, 1018, 1, new KCallback<KObject>() {
-                        @Override
-                        public void on(KObject kObject) {
-                            if (kObject.now() == 1018) {
-                                System.out.println("outside: " + kObject.get(attribute));
-                            }
-
-                        }
-                    });
-
 
                     try {
                         cdt.await();
@@ -173,8 +137,6 @@ public class TestOneLookupAll {
                     speed = (end - start) / (valuesToInsert);
                     double perm = 1000000.0 / speed;
                     System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
-
-                    //  System.out.println("Inserted "+valuesToInsert+" values in: "+speed+" ns/val");
 
                     compare[0] = 1000000;
                     start = System.nanoTime();

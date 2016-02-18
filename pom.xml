@@ -18,6 +18,7 @@
         <kmf.version>4.27.1-SNAPSHOT</kmf.version>
     </properties>
 
+
     <dependencies>
         <dependency>
             <groupId>org.influxdb</groupId>
