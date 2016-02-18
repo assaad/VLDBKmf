@@ -110,14 +110,16 @@ public class TestOneLookupAll {
                                     for (int k=0;k<kObjects.length;k++) {
                                         kObjects[k].set(attribute, value);
 
-                                        //BUG can be caught here 
+                                        //BUG can be caught here
                                         if(kObjects[k].now()==1018){
-                                            System.out.println("id is:" + uuid+ " time is: "+times[jj][k]+" value is "+value+" inserted "+(Double) kObjects[k].get(attribute));
+                                            System.out.println("id is:" + uuid+ " time is: "+times[jj][k] +" or "+ kObjects[k].now() +" value is "+value+" inserted "+(Double) kObjects[k].get(attribute));
                                             model.lookup(0, kObjects[k].now(), kObjects[k].uuid(), new KCallback<KObject>() {
                                                 @Override
                                                 public void on(KObject kObject) {
                                                     if(kObject.now()==1018){
-                                                        System.out.println("inside: "+ kObject.get(attribute));
+                                                        System.out.println("however after lookup: ");
+                                                        System.out.println("id is:" + uuid+ " time is: "+kObject.now() +" value is " + kObject.get(attribute));
+
                                                     }
 
                                                 }
