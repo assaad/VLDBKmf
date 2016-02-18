@@ -109,9 +109,10 @@ public class TestOneLookupAll {
                                     value = uuid*7 +  0.7*jj;
                                     for (int k=0;k<kObjects.length;k++) {
                                         kObjects[k].set(attribute, value);
+
                                         if(kObjects[k].now()==1018){
                                             System.out.println("id is:" + uuid+ " time is: "+times[jj][k]+" value is "+value+" inserted "+(Double) kObjects[k].get(attribute));
-                                            model.lookup(0, 1018, 1, new KCallback<KObject>() {
+                                            model.lookup(0, kObjects[k].now(), kObjects[k].uuid(), new KCallback<KObject>() {
                                                 @Override
                                                 public void on(KObject kObject) {
                                                     if(kObject.now()==1018){
