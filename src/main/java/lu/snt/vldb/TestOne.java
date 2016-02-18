@@ -4,7 +4,9 @@ import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.KModel;
 import org.kevoree.modeling.KObject;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
+import org.kevoree.modeling.memory.space.impl.press.PressOffHeapChunkSpace;
 import org.kevoree.modeling.memory.strategy.impl.PressHeapMemoryStrategy;
+import org.kevoree.modeling.memory.strategy.impl.PressOffHeapMemoryStrategy;
 import org.kevoree.modeling.meta.KMetaClass;
 import org.kevoree.modeling.meta.KPrimitiveTypes;
 import org.kevoree.modeling.meta.impl.MetaModel;
@@ -54,11 +56,11 @@ public class TestOne {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(100000)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressOffHeapMemoryStrategy(valuesToInsert*2)).withScheduler(new AsyncScheduler().workers(t)).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(valuesToInsert*2)).withScheduler(new DirectScheduler()).build());
             }
 
 
