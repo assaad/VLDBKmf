@@ -110,6 +110,7 @@ public class TestOneLookupAll {
                                     for (int k=0;k<kObjects.length;k++) {
                                         kObjects[k].set(attribute, value);
 
+                                        //BUG can be caught here 
                                         if(kObjects[k].now()==1018){
                                             System.out.println("id is:" + uuid+ " time is: "+times[jj][k]+" value is "+value+" inserted "+(Double) kObjects[k].get(attribute));
                                             model.lookup(0, kObjects[k].now(), kObjects[k].uuid(), new KCallback<KObject>() {
