@@ -54,7 +54,7 @@ public class TestOne {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(valuesToInsert * 2)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withMemoryStrategy(new PressHeapMemoryStrategy(100000)).withScheduler(new AsyncScheduler().workers(t)).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
@@ -72,7 +72,7 @@ public class TestOne {
             model.connect(new KCallback() {
                 @Override
                 public void on(Object o) {
-                    long[] uids = new long[ts];
+                    final long[] uids = new long[ts];
                     for (int i = 0; i < ts; i++) {
                         KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
                         uids[i] = object.uuid();
@@ -95,12 +95,14 @@ public class TestOne {
                                 kObject.set(kObject.metaClass().attribute("value"), value);
                                 cdt.countDown();
                                 long x = valuesToInsert - cdt.getCount();
-                                if (x == compare[0]) {
+                                if (x == compare[0]||(x>0&&x%50000000==0)) {
                                     double end2 = System.nanoTime();
                                     double speed2 = (end2 - finalStart2);
                                     double speed3 = speed2 / (x);
                                     double perm = 1000000.0 / speed3;
-                                    compare[0] = compare[0] * 2;
+                                    if(x == compare[0]) {
+                                        compare[0] = compare[0] * 2;
+                                    }
                                     System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                                 }
                             }
@@ -139,12 +141,14 @@ public class TestOne {
                                 }
                                 cdt2.countDown();
                                 long x = valuesToInsert - cdt2.getCount();
-                                if (x == compare[0]) {
+                                if (x == compare[0]||(x>0&&x%50000000==0)) {
                                     double end2 = System.nanoTime();
                                     double speed2 = (end2 - finalStart);
                                     double speed3 = speed2 / (x);
                                     double perm = 1000000.0 / speed3;
-                                    compare[0] = compare[0] * 2;
+                                    if(x == compare[0]) {
+                                        compare[0] = compare[0] * 2;
+                                    }
                                     System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
 
                                 }
