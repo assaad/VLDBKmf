@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -51,14 +52,15 @@ public class TestOneLookupAll {
             input = br.readLine();
             int t = Integer.parseInt(input);
 
+            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert *3);
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert *3)).withScheduler(new AsyncScheduler().workers(t)).withSpaceManager(new ManualChunkSpaceManager()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(phc).withScheduler(new AsyncScheduler().workers(t)).withSpaceManager(new ManualChunkSpaceManager()).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert *3)).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(phc).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
             }
 
 
@@ -78,6 +80,7 @@ public class TestOneLookupAll {
 
             final int dim = (tsp - 1) / split + 1;
 
+
             final long[][] times = new long[dim][split];
             int count = 0;
             for (int j = 0; j < dim; j++) {
@@ -95,6 +98,8 @@ public class TestOneLookupAll {
                         KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
                         uids[i] = object.uuid();
                     }
+                    System.out.println("Lookup all is now: " + split + " , model connected, objects created, start inserting...");
+
 
                     //Insert test
                     long start, end;
@@ -142,10 +147,13 @@ public class TestOneLookupAll {
                         e.printStackTrace();
                     }
 
+
                     end = System.nanoTime();
                     speed = (end - start) / (valuesToInsert);
                     double perm = 1000000.0 / speed;
                     System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+
+                    System.out.println("Hash collisions: "+phc.collisions());
 
                     compare[0] = 1000000;
                     start = System.nanoTime();
