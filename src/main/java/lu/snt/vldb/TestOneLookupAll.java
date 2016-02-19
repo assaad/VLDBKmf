@@ -54,11 +54,11 @@ public class TestOneLookupAll {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 1000)).withScheduler(new AsyncScheduler().workers(t)).withSpaceManager(new ManualChunkSpaceManager()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert *3)).withScheduler(new AsyncScheduler().workers(t)).withSpaceManager(new ManualChunkSpaceManager()).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 1000)).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert *3)).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
             }
 
 
@@ -68,7 +68,14 @@ public class TestOneLookupAll {
             final CountDownLatch cdt3 = new CountDownLatch(1);
             final long[] compare = new long[1];
             compare[0] = 1000000;
-            final int split = Math.min(10, tsp);
+            int ss = Math.min(1000, tsp);
+
+            System.out.println("Lookup all is now: " + ss + " insert a value: ");
+            input = br.readLine();
+            final int split=Integer.parseInt(input);
+
+
+
             final int dim = (tsp - 1) / split + 1;
 
             final long[][] times = new long[dim][split];
