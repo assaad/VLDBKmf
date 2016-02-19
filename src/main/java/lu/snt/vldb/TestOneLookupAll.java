@@ -52,7 +52,7 @@ public class TestOneLookupAll {
             input = br.readLine();
             int t = Integer.parseInt(input);
 
-            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert *3);
+            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert *4);
 
             final KModel model;
             if (t > 1) {
@@ -154,6 +154,7 @@ public class TestOneLookupAll {
                     System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
 
                     System.out.println("Hash collisions: "+phc.collisions());
+                    System.out.println("Hash calls: "+phc.size());
 
                     compare[0] = 1000000;
                     start = System.nanoTime();

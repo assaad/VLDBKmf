@@ -51,7 +51,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>lu.snt.vldb.TestOneLookupAll</mainClass>
+                            <mainClass>lu.snt.vldb.TestColl</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
