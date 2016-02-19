@@ -5,6 +5,7 @@ import org.kevoree.modeling.KModel;
 import org.kevoree.modeling.KObject;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 import org.kevoree.modeling.memory.manager.internal.KInternalDataManager;
+import org.kevoree.modeling.memory.space.impl.ManualChunkSpaceManager;
 import org.kevoree.modeling.memory.space.impl.press.PressHeapChunkSpace;
 import org.kevoree.modeling.meta.KMetaAttribute;
 import org.kevoree.modeling.meta.KMetaClass;
@@ -53,11 +54,11 @@ public class TestOneLookupAll {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 2)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 1000)).withScheduler(new AsyncScheduler().workers(t)).withSpaceManager(new ManualChunkSpaceManager()).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 2)).withScheduler(new DirectScheduler()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert + 1000)).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
             }
 
 
@@ -107,6 +108,7 @@ public class TestOneLookupAll {
                                     value = uuid * 7 + 0.7 * jj;
                                     for (int k = 0; k < kObjects.length; k++) {
                                         kObjects[k].set(attribute, value);
+                                        kObjects[k].destroy();
                                         value += 0.7;
                                         cdt.countDown();
                                     }
@@ -155,7 +157,7 @@ public class TestOneLookupAll {
                                     value = uuid * 7 + 0.7 * jj;
                                     for (int k = 0; k < kObjects.length; k++) {
                                         double v = (Double) kObjects[k].get(attribute);
-
+                                        kObjects[k].destroy();
                                         if (v != value) {
                                             System.out.println("Error in reading " + kObjects[k].now() + " id: " + uuid + " expected: " + value + " got: " + v);
                                         }
