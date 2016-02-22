@@ -51,11 +51,11 @@ public class TestOne {
 
             final KModel model;
             if (t > 1) {
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new AsyncScheduler().workers(t)).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2,10)).withScheduler(new AsyncScheduler().workers(t)).build());
                 System.out.println("Async scheduler created - Number of threads: " + t + " /" + threads);
             } else {
                 System.out.println("Direct scheduler created");
-                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2)).withScheduler(new DirectScheduler()).build());
+                model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(new PressHeapChunkSpace(valuesToInsert * 2,10)).withScheduler(new DirectScheduler()).build());
             }
 
 

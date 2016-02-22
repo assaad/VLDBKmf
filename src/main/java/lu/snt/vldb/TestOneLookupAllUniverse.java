@@ -50,7 +50,8 @@ public class TestOneLookupAllUniverse {
 
           //  System.out.println("Number of threads available: " + threads + " insert number of threads: ");
           //  input = br.readLine();
-            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert *4);
+            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert,10);
+
 
             System.out.println("Direct scheduler created");
             model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(phc).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());

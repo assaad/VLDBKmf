@@ -48,11 +48,20 @@ public class TestOneLookupAll {
 
             System.out.println("Total to insert is: " + valuesToInsert);
 
-            System.out.println("Number of threads available: " + threads + " insert number of threads: ");
-            input = br.readLine();
-            int t = Integer.parseInt(input);
+            //System.out.println("Number of threads available: " + threads + " insert number of threads: ");
+            //input = br.readLine();
+          //  int t = Integer.parseInt(input);
+            int t = 1; //1 thread
 
-            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert *4);
+            System.out.println("Enter Cache size?: ");
+            input = br.readLine();
+            int cachesize = Integer.parseInt(input);
+
+            System.out.println("Percent to save?: ");
+            input = br.readLine();
+            int percent = Integer.parseInt(input);
+
+            final PressHeapChunkSpace phc = new PressHeapChunkSpace(cachesize,percent);
 
             final KModel model;
             if (t > 1) {
