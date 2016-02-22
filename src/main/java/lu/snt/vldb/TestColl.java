@@ -2,6 +2,8 @@ package lu.snt.vldb;
 
 import org.kevoree.modeling.util.PrimitiveHelper;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -11,59 +13,67 @@ import java.util.Random;
 public class TestColl {
     public static void main(String[] arg){
 
-        Random random=new Random();
-        HashSet<Integer> sets=new HashSet<Integer>();
+        try {
+            Random random = new Random();
+            HashSet<Integer> sets = new HashSet<Integer>();
 
-       System.out.println( (-100& 0x7FFFFFFF)%56);
-        if(arg[0].equals("r")) {
-            System.out.println("Random");
-            long start = System.nanoTime();
-            int x = 1000000000;
-            for (int i = 0; i < x; i++) {
-                int y = random.nextInt();
-                //int y= PrimitiveHelper.tripleHash(0,1000+i/1000,i%250000);
-                y = (y & 0x7FFFFFFF)%x;
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-                if (!sets.contains(y)) {
-                    sets.add(y);
+            System.out.println("Enter the number of max hash: ");
+            String input = null;
+            input = br.readLine();
+            int zz= Integer.parseInt(input);
+
+            System.out.println("Enter the number of hash: ");
+            input = br.readLine();
+            int x = Integer.parseInt(input);
+
+            System.out.println("r for random or anything else for kevoree hash: ");
+            input = br.readLine();
+
+            if (input.equals("r")) {
+                System.out.println("Random");
+                long start = System.nanoTime();
+                for (int i = 0; i < x; i++) {
+                    int y = random.nextInt() % zz;
+                    if (!sets.contains(y)) {
+                        sets.add(y);
+                    }
+                    if (i % 10000000 == 0 && i != 0) {
+                        System.out.println("i: " + i / 10000000);
+                    }
                 }
-                if (i % 1000000 == 0 && i != 0) {
-                    double d = sets.size();
-                    d = (i - d) * 100.0 / i;
-                    System.out.println("i: " + i/1000000  + " " + sets.size() + " collisions: " + (i - sets.size()) + " percent: " + d + " %");
+                long end = System.nanoTime();
+                double dd = (end - start) / 1000000000;
+                System.out.println(dd + " s");
+                double d = sets.size();
+                d = (x - d) * 100.0 / x;
+                System.out.println(sets.size() + " / " + x + " collisions: " + (x - sets.size()) + " percent: " + d + " %");
+            } else {
+                long start = System.nanoTime();
+                for (int i = 0; i < x; i++) {
+
+                    int y = PrimitiveHelper.tripleHash(0, 1000 + i / 1000, i % 250000) % zz;
+                    if (!sets.contains(y)) {
+                        sets.add(y);
+                    }
+
+                    if (i % 10000000 == 0 && i != 0) {
+                        System.out.println("i: " + i / 10000000);
+                    }
                 }
+                long end = System.nanoTime();
+                double dd = (end - start) / 1000000000;
+                System.out.println(dd + " s");
+                double d = sets.size();
+                d = (x - d) * 100.0 / x;
+                System.out.println(sets.size() + " / " + x + " collisions: " + (x - sets.size()) + " percent: " + d + " %");
+
             }
-            long end = System.nanoTime();
-            double dd = (end - start) / 1000000000;
-            System.out.println(dd + " s");
-            double d = sets.size();
-            d = (x - d) * 100.0 / x;
-            System.out.println(sets.size() + " / " + x + " collisions: " + (x - sets.size()) + " percent: " + d + " %");
+
         }
-        else{
-            long start = System.nanoTime();
-            int x = 1000000000;
-            for (int i = 0; i < x; i++) {
-
-                int y= PrimitiveHelper.tripleHash(0,1000+i/1000,i%250000);
-                y = (y & 0x7FFFFFFF)%x;
-
-                if (!sets.contains(y)) {
-                    sets.add(y);
-                }
-                if (i % 1000000 == 0 && i != 0) {
-                    double d = sets.size();
-                    d = (i - d) * 100.0 / i;
-                    System.out.println("i: " + i/1000000 + " " + sets.size() + " collisions: " + (i - sets.size()) + " percent: " + d + " %");
-                }
-            }
-            long end = System.nanoTime();
-            double dd = (end - start) / 1000000000;
-            System.out.println(dd + " s");
-            double d = sets.size();
-            d = (x - d) * 100.0 / x;
-            System.out.println(sets.size() + " / " + x + " collisions: " + (x - sets.size()) + " percent: " + d + " %");
-
+        catch (Exception ex){
+            ex.printStackTrace();
         }
 
     }
