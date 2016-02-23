@@ -21,8 +21,8 @@ public class MinimalUni {
     public static void main(String[] arg) throws IOException {
 
         try {
-            final int valuesToInsert = 10000;
-            final int step=100;
+            final int valuesToInsert = 200;
+            final int step = 100;
             final long timeOrigin = 1000;
             MetaModel dynamicMetaModel = new MetaModel("MyMetaModel");
             final KMetaClass sensorMetaClass = dynamicMetaModel.addMetaClass("Sensor");
@@ -34,7 +34,7 @@ public class MinimalUni {
                             .withSpace(new PressHeapChunkSpace(100000, 10))
                             //.withScheduler(new AsyncScheduler().workers(threads))
                             .withScheduler(new DirectScheduler())
-                           // .withContentDeliveryDriver(new RocksDBPlugin("/Users/assaad/work/github/data/rockdb"))
+                            // .withContentDeliveryDriver(new RocksDBPlugin("/Users/assaad/work/github/data/rockdb"))
                             .withSpaceManager(new ManualChunkSpaceManager())
                             .build());
             //  final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
@@ -46,56 +46,43 @@ public class MinimalUni {
             model.connect(new KCallback() {
                 @Override
                 public void on(Object o) {
-
                     KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
                     object.destroy();
                     long uuid = object.uuid();
-                    long universe=0;
-
+                    long universe = 0;
                     final KCounterDefer counter = model.counterDefer(valuesToInsert);
-
-                    //final AtomicInteger at = new AtomicInteger(0);
                     for (long i = 0; i < valuesToInsert; i++) {
-
                         if (i % step == 0) {
-                            KUniverse uni = model.universe(i).diverge();
-                            universe=uni.key();
+                            KUniverse uni = model.universe(universe).diverge();
+                            universe = uni.key();
                         }
-
                         if (i % 1000000 == 0) {
                             System.out.println(">" + i + " " + (System.currentTimeMillis() - before) / 1000 + "s");
                         }
-
-
                         final double value = i * 0.3;
                         model.lookup(universe, timeOrigin + i, uuid, new KCallback<KObject>() {
                             @Override
                             public void on(KObject kObject) {
+
+                                if(kObject == null){
+                                    System.err.println("WTF");
+                                }
+
                                 kObject.set(kObject.metaClass().attribute("value"), value);
                                 counter.countDown();
-                                //at.incrementAndGet();
-                                //kill the object
                                 kObject.destroy();
                             }
                         });
                     }
 
+                    //after everything
                     counter.then(new KCallback() {
                         @Override
                         public void on(Object o) {
-                            // object.destroy();
-
-
                             model.disconnect(new KCallback() {
                                 @Override
                                 public void on(Object o) {
-                                    //KInternalDataManager manager = (KInternalDataManager) model.manager();
-                                    // manager.space().printDebug(model.metaModel());
-                                    //System.out.println(">CDN_SIZE:" + castedCDN.size());
-
                                     System.out.println("end>" + " " + (System.currentTimeMillis() - before) / 1000 + "s");
-
-
                                 }
                             });
 
@@ -105,8 +92,7 @@ public class MinimalUni {
                 }
             });
 
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
