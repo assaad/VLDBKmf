@@ -30,6 +30,13 @@
             <artifactId>microframework</artifactId>
             <version>${kmf.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.kevoree.modeling.plugin</groupId>
+            <artifactId>leveldb</artifactId>
+            <version>4.27.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
