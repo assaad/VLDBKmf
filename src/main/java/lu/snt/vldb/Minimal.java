@@ -7,6 +7,7 @@ import org.kevoree.modeling.cdn.impl.MemoryContentDeliveryDriver;
 import org.kevoree.modeling.defer.KCounterDefer;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 import org.kevoree.modeling.memory.manager.internal.KInternalDataManager;
+import org.kevoree.modeling.memory.space.impl.ManualChunkSpaceManager;
 import org.kevoree.modeling.memory.space.impl.press.PressHeapChunkSpace;
 import org.kevoree.modeling.meta.KMetaClass;
 import org.kevoree.modeling.meta.KPrimitiveTypes;
@@ -36,6 +37,7 @@ public class Minimal {
                         //.withScheduler(new AsyncScheduler().workers(threads))
                         .withScheduler(new DirectScheduler())
                         .withContentDeliveryDriver(new LevelDBPlugin("/Users/duke/Documents/dev/sandbox/VLDBKmf/out"))
+                        .withSpaceManager(new ManualChunkSpaceManager())
                         .build());
         //  final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
         //final MemoryContentDeliveryDriver castedCDN = (MemoryContentDeliveryDriver) ((KInternalDataManager) model.manager()).cdn();
