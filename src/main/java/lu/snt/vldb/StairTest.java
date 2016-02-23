@@ -28,7 +28,7 @@ public class StairTest {
     final static MetaModel dynamicMetaModel = new MetaModel("MyMetaModel");
     final static KMetaClass sensorMetaClass = dynamicMetaModel.addMetaClass("Sensor");
     final static KMetaAttribute attribute = sensorMetaClass.addAttribute("value", KPrimitiveTypes.DOUBLE);
-    static KModel model;
+
 
     public static void main(String[] arg) {
         try {
@@ -47,12 +47,9 @@ public class StairTest {
             System.out.println("Total to insert is: " + valuesToInsert);
 
             //  System.out.println("Number of threads available: " + threads + " insert number of threads: ");
-            //  input = br.readLine();
-            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert*4,100);
 
 
             System.out.println("Direct scheduler created");
-            model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(phc).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
 
 
             System.out.println("Number of time to repeat the experiment?: ");
@@ -92,7 +89,15 @@ public class StairTest {
     }
 
     private static double[] bench(final int valuesToInsert, final int steps, final int stairs) throws InterruptedException {
+
+        //  input = br.readLine();
+        final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert*4,100);
+
+        final KModel model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(phc).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
+
+
         final double[] res = new double[2];
+
 
         final CountDownLatch cdt = new CountDownLatch(valuesToInsert);
         final CountDownLatch cdt2 = new CountDownLatch(valuesToInsert);
