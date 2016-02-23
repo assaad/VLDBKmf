@@ -34,7 +34,7 @@ public class MinimalUni {
                             .withSpace(new PressHeapChunkSpace(100000, 10))
                             //.withScheduler(new AsyncScheduler().workers(threads))
                             .withScheduler(new DirectScheduler())
-                            .withContentDeliveryDriver(new RocksDBPlugin("/Users/assaad/work/github/data/rockdb"))
+                           // .withContentDeliveryDriver(new RocksDBPlugin("/Users/assaad/work/github/data/rockdb"))
                             .withSpaceManager(new ManualChunkSpaceManager())
                             .build());
             //  final KModel model= dynamicMetaModel.createModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());

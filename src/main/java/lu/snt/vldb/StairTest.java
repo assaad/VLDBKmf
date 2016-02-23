@@ -93,7 +93,11 @@ public class StairTest {
         //  input = br.readLine();
         final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert*4,100);
 
-        final KModel model = dynamicMetaModel.createModel(DataManagerBuilder.create().withSpace(phc).withScheduler(new DirectScheduler()).withSpaceManager(new ManualChunkSpaceManager()).build());
+        final KModel model = dynamicMetaModel.createModel(DataManagerBuilder.create()
+                .withSpace(phc)
+                .withScheduler(new DirectScheduler())
+                .withSpaceManager(new ManualChunkSpaceManager())
+                .build());
 
 
         final double[] res = new double[2];
