@@ -50,7 +50,7 @@ public class TestOneLookupAllUniverse {
 
           //  System.out.println("Number of threads available: " + threads + " insert number of threads: ");
           //  input = br.readLine();
-            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert,10);
+            final PressHeapChunkSpace phc = new PressHeapChunkSpace(valuesToInsert*4,100);
 
 
             System.out.println("Direct scheduler created");
@@ -164,7 +164,7 @@ public class TestOneLookupAllUniverse {
                                     if (x >= compare[0]) {
                                         compare[0] = compare[0] * 2;
                                     }
-                          //          System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                                    System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                                 }
                             }
                         });
@@ -183,7 +183,7 @@ public class TestOneLookupAllUniverse {
                 speed = (end - start) / (valuesToInsert);
                 double perm = 1000000.0 / speed;
                 res[0]=perm;
-              //  System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
 
                 compare[0] = 1000000;
                 start = System.nanoTime();
@@ -218,7 +218,7 @@ public class TestOneLookupAllUniverse {
                                     if (x >= compare[0]) {
                                         compare[0] = compare[0] * 2;
                                     }
-                                 //   System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                                   System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                                 }
                             }
                         });
@@ -237,7 +237,7 @@ public class TestOneLookupAllUniverse {
                 perm = 1000000.0 / speed;
                 res[1]=perm;
 
-               // System.out.println("Count " + (valuesToInsert / 1000000) + "M, read pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                System.out.println("Count " + (valuesToInsert / 1000000) + "M, read pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                 cdt3.countDown();
 
 
