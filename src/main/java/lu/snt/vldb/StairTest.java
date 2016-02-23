@@ -109,6 +109,8 @@ public class StairTest {
         final long[] compare = new long[1];
         compare[0] = 1000000;
 
+        final long[] universekeys=new long[stairs];
+
 
         final long[][] times = new long[stairs][steps];
         int count = 0;
@@ -133,20 +135,53 @@ public class StairTest {
 
                 start = System.nanoTime();
                 final long finalStart2 = start;
-                long universe=0;
+                long universe=object.universe();
 
 
                 for (int i = 0; i < stairs; i++) {
                     final int ii=i;
-                    model.lookupAllTimes(universe, times[ii], uid, new KCallback<KObject[]>() {
+                    final long uu=universe;
+
+                    double value = steps * ii*2;
+                    for(int k=0;k<steps;k++){
+                        final double vv=value;
+                        model.lookup(uu, times[ii][k], uid, new KCallback<KObject>() {
+                            @Override
+                            public void on(KObject kObject) {
+                                kObject.set(attribute, vv);
+                                kObject.destroy();
+                            }
+                        });
+                        value += 0.5;
+                        cdt.countDown();
+                    }
+                    long x = valuesToInsert - cdt.getCount();
+                    if (x >= compare[0] || (x > 0 && x % 50000000 == 0)) {
+                        double end2 = System.nanoTime();
+                        double speed2 = (end2 - finalStart2);
+                        double speed3 = speed2 / (x);
+                        double perm = 1000000.0 / speed3;
+                        if (x >= compare[0]) {
+                            compare[0] = compare[0] * 2;
+                        }
+                        //      System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                    }
+
+
+                  /*  model.lookupAllTimes(uu, times[ii], uid, new KCallback<KObject[]>() {
                         @Override
                         public void on(KObject[] kObjects) {
                             double value;
-                            value = 0.7 * ii;
+                            value = steps * ii*2;
                             for (int k = 0; k < kObjects.length; k++) {
-                                kObjects[k].set(attribute, value);
-                                kObjects[k].destroy();
-                                value += 0.5;
+                                if( kObjects[k]==null){
+                                    System.out.println("Error ");
+                                }
+                                else {
+                                    kObjects[k].set(attribute, value);
+                                    kObjects[k].destroy();
+                                    value += 0.5;
+                                }
                                 cdt.countDown();
                             }
                             long x = valuesToInsert - cdt.getCount();
@@ -158,13 +193,16 @@ public class StairTest {
                                 if (x >= compare[0]) {
                                     compare[0] = compare[0] * 2;
                                 }
-                                System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                          //      System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                             }
                         }
-                    });
-                    KUniverse uni = model.universe(i).diverge();
+                    });*/
+
+
+                    universekeys[ii]=universe;
+                    KUniverse uni = model.universe(universe).diverge();
                     universe=uni.key();
-                    System.out.println("diverging: "+uni.key());
+                //    System.out.println("diverging: "+uni.key());
                 }
 
                 try {
@@ -178,7 +216,7 @@ public class StairTest {
                 speed = (end - start) / (valuesToInsert);
                 double perm = 1000000.0 / speed;
                 res[0] = perm;
-                System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+              //  System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
 
                 compare[0] = 1000000;
                 start = System.nanoTime();
@@ -187,11 +225,11 @@ public class StairTest {
 
                 for (int i = 0; i < stairs; i++) {
                     final int ii=i;
-                    model.lookupAllTimes(ii, times[ii], uid, new KCallback<KObject[]>() {
+                    model.lookupAllTimes( universekeys[ii], times[ii], uid, new KCallback<KObject[]>() {
                         @Override
                         public void on(KObject[] kObjects) {
                             double value;
-                            value = 0.7 * ii;
+                            value = steps * ii*2;
                             for (int k = 0; k < kObjects.length; k++) {
                                 double v = (Double) kObjects[k].get(attribute);
                                 kObjects[k].destroy();
@@ -210,7 +248,7 @@ public class StairTest {
                                 if (x >= compare[0]) {
                                     compare[0] = compare[0] * 2;
                                 }
-                                System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+                              //  System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                             }
                         }
                     });
@@ -228,7 +266,7 @@ public class StairTest {
                 perm = 1000000.0 / speed;
                 res[1] = perm;
 
-                System.out.println("Count " + (valuesToInsert / 1000000) + "M, read pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
+          //      System.out.println("Count " + (valuesToInsert / 1000000) + "M, read pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
                 cdt3.countDown();
 
 
@@ -241,7 +279,7 @@ public class StairTest {
         model.disconnect(new KCallback() {
             @Override
             public void on(Object o) {
-                System.out.println("Test over");
+           //     System.out.println("Test over");
                 cdt4.countDown();
             }
         });

@@ -21,7 +21,7 @@ public class MinimalUni {
     public static void main(String[] arg) throws IOException {
 
         try {
-            final int valuesToInsert = 200;
+            final int valuesToInsert = 20000;
             final int step = 100;
             final long timeOrigin = 1000;
             MetaModel dynamicMetaModel = new MetaModel("MyMetaModel");
@@ -42,6 +42,9 @@ public class MinimalUni {
             // MemoryContentDeliveryDriver.DEBUG = true;
 
             final long before = System.currentTimeMillis();
+            final long[] times = new long[2];
+            times[0]=1000;
+            times[1]=1002;
 
             model.connect(new KCallback() {
                 @Override
@@ -52,15 +55,15 @@ public class MinimalUni {
                     long universe = 0;
                     final KCounterDefer counter = model.counterDefer(valuesToInsert);
                     for (long i = 0; i < valuesToInsert; i++) {
-                        if (i % step == 0) {
+                    /*    if (i % step == 0) {
                             KUniverse uni = model.universe(universe).diverge();
                             universe = uni.key();
                         }
                         if (i % 1000000 == 0) {
                             System.out.println(">" + i + " " + (System.currentTimeMillis() - before) / 1000 + "s");
-                        }
+                        }*/
                         final double value = i * 0.3;
-                        model.lookup(universe, timeOrigin + i, uuid, new KCallback<KObject>() {
+                      /*  model.lookup(universe, timeOrigin + i, uuid, new KCallback<KObject>() {
                             @Override
                             public void on(KObject kObject) {
 
@@ -72,7 +75,22 @@ public class MinimalUni {
                                 counter.countDown();
                                 kObject.destroy();
                             }
+                        });*/
+                        model.lookupAllTimes(universe, times, uuid, new KCallback<KObject[]>() {
+                            @Override
+                            public void on(KObject[] kObjects) {
+                                for (int k = 0; k < kObjects.length; k++) {
+                                    if(kObjects[k] == null){
+                                        System.err.println("WTF");
+                                    }
+                                    kObjects[k] .set(kObjects[k].metaClass().attribute("value"), value);
+                                    kObjects[k].destroy();
+                                }
+                                counter.countDown();
+                            }
                         });
+                        KUniverse uni = model.universe(universe).diverge();
+                        universe = uni.key();
                     }
 
                     //after everything
