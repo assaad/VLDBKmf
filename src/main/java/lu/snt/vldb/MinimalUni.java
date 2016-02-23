@@ -3,6 +3,7 @@ package lu.snt.vldb;
 import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.KModel;
 import org.kevoree.modeling.KObject;
+import org.kevoree.modeling.KUniverse;
 import org.kevoree.modeling.defer.KCounterDefer;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 import org.kevoree.modeling.memory.space.impl.ManualChunkSpaceManager;
@@ -20,7 +21,8 @@ public class MinimalUni {
     public static void main(String[] arg) throws IOException {
 
         try {
-            final int valuesToInsert = 100000000;
+            final int valuesToInsert = 10000;
+            final int step=100;
             final long timeOrigin = 1000;
             MetaModel dynamicMetaModel = new MetaModel("MyMetaModel");
             final KMetaClass sensorMetaClass = dynamicMetaModel.addMetaClass("Sensor");
@@ -48,16 +50,16 @@ public class MinimalUni {
                     KObject object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
                     object.destroy();
                     long uuid = object.uuid();
+                    long universe=0;
 
                     final KCounterDefer counter = model.counterDefer(valuesToInsert);
 
                     //final AtomicInteger at = new AtomicInteger(0);
                     for (long i = 0; i < valuesToInsert; i++) {
 
-                        if (i % 1000 == 0) {
-                            object = model.universe(0).time(timeOrigin).create(sensorMetaClass);
-                            uuid = object.uuid();
-                            object.destroy();
+                        if (i % step == 0) {
+                            KUniverse uni = model.universe(i).diverge();
+                            universe=uni.key();
                         }
 
                         if (i % 1000000 == 0) {
@@ -66,7 +68,7 @@ public class MinimalUni {
 
 
                         final double value = i * 0.3;
-                        model.lookup(0, timeOrigin + i, uuid, new KCallback<KObject>() {
+                        model.lookup(universe, timeOrigin + i, uuid, new KCallback<KObject>() {
                             @Override
                             public void on(KObject kObject) {
                                 kObject.set(kObject.metaClass().attribute("value"), value);
