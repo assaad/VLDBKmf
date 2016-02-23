@@ -62,7 +62,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>lu.snt.vldb.TestColl</mainClass>
+                            <mainClass>lu.snt.vldb.TestCollision</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -10,7 +10,7 @@ import java.util.Random;
 /**
  * Created by assaad on 19/02/16.
  */
-public class TestColl {
+public class TestCollision {
     public static void main(String[] arg){
 
         try {
