@@ -40,10 +40,10 @@ public class StairTest {
             final int stairs = Integer.parseInt(input);
 
             System.out.println("Enter the number of point in each step: ");
-            input = br.readLine();
-            final int steps = Integer.parseInt(input);
-            final int valuesToInsert = stairs * steps;
-
+           /* input = br.readLine();
+            final int steps = Integer.parseInt(input);*/
+            final int steps = 1000;
+            final int valuesToInsert = stairs*steps;
             System.out.println("Total to insert is: " + valuesToInsert);
 
             //  System.out.println("Number of threads available: " + threads + " insert number of threads: ");
@@ -67,18 +67,18 @@ public class StairTest {
                     ex.printStackTrace();
                 }
                 if(i==0){
-                    System.out.println("Round 0:" +d[0]+" "+d[1]);
+                    System.out.println("Round 0: " +formatter.format(d[0])+" "+formatter.format(d[1])+" "+formatter.format(d[2]));
                 }
                 if(i==1){
                     g.feed(d);
-                    System.out.println("Round 1:" +d[0]+" "+d[1]);
+                    System.out.println("Round 1: " +formatter.format(d[0])+" "+formatter.format(d[1])+" "+formatter.format(d[2]));
                 }
 
                 //g.feed(d);
                 if (i > 1) {
                     g.feed(d);
-                    System.out.println("Round " + i + ": "+d[0]+" "+d[1]);
-                    g.print();
+                    System.out.println("Round " + i + ": "+formatter.format(d[0])+" "+formatter.format(d[1])+" "+formatter.format(d[2]));
+                  //  g.print();
                 }
             }
             g.print();
@@ -100,14 +100,13 @@ public class StairTest {
                 .build());
 
 
-        final double[] res = new double[2];
+        final double[] res = new double[3];
 
 
         final CountDownLatch cdt = new CountDownLatch(valuesToInsert);
         final CountDownLatch cdt2 = new CountDownLatch(valuesToInsert);
-        final CountDownLatch cdt3 = new CountDownLatch(1);
-        final long[] compare = new long[1];
-        compare[0] = 1000000;
+        final CountDownLatch cdt3 = new CountDownLatch(valuesToInsert);
+        final CountDownLatch cdt4 = new CountDownLatch(1);
 
         final long[] universekeys=new long[stairs];
 
@@ -134,7 +133,6 @@ public class StairTest {
                 double speed;
 
                 start = System.nanoTime();
-                final long finalStart2 = start;
                 long universe=object.universe();
 
 
@@ -155,54 +153,9 @@ public class StairTest {
                         value += 0.5;
                         cdt.countDown();
                     }
-                    long x = valuesToInsert - cdt.getCount();
-                    if (x >= compare[0] || (x > 0 && x % 50000000 == 0)) {
-                        double end2 = System.nanoTime();
-                        double speed2 = (end2 - finalStart2);
-                        double speed3 = speed2 / (x);
-                        double perm = 1000000.0 / speed3;
-                        if (x >= compare[0]) {
-                            compare[0] = compare[0] * 2;
-                        }
-                        //      System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
-                    }
-
-
-                  /*  model.lookupAllTimes(uu, times[ii], uid, new KCallback<KObject[]>() {
-                        @Override
-                        public void on(KObject[] kObjects) {
-                            double value;
-                            value = steps * ii*2;
-                            for (int k = 0; k < kObjects.length; k++) {
-                                if( kObjects[k]==null){
-                                    System.out.println("Error ");
-                                }
-                                else {
-                                    kObjects[k].set(attribute, value);
-                                    kObjects[k].destroy();
-                                    value += 0.5;
-                                }
-                                cdt.countDown();
-                            }
-                            long x = valuesToInsert - cdt.getCount();
-                            if (x >= compare[0] || (x > 0 && x % 50000000 == 0)) {
-                                double end2 = System.nanoTime();
-                                double speed2 = (end2 - finalStart2);
-                                double speed3 = speed2 / (x);
-                                double perm = 1000000.0 / speed3;
-                                if (x >= compare[0]) {
-                                    compare[0] = compare[0] * 2;
-                                }
-                          //      System.out.println("Count " + (x / 1000000) + "M, insert pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
-                            }
-                        }
-                    });*/
-
-
                     universekeys[ii]=universe;
                     KUniverse uni = model.universe(universe).diverge();
                     universe=uni.key();
-                //    System.out.println("diverging: "+uni.key());
                 }
 
                 try {
@@ -218,43 +171,48 @@ public class StairTest {
                 res[0] = perm;
               //  System.out.println("Count " + (valuesToInsert / 1000000) + "M, insert pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
 
-                compare[0] = 1000000;
-                start = System.nanoTime();
-                final long finalStart = start;
-                //  counter.set(0);
+                for (int i = 1; i < stairs; i++) {
+                    final int ii=i;
 
+                    double value = steps * ii*3;
+                    for(int k=0;k<steps;k++){
+                        final double vv=value;
+                        model.lookup(universekeys[0], times[ii][k], uid, new KCallback<KObject>() {
+                            @Override
+                            public void on(KObject kObject) {
+                                kObject.set(attribute, vv);
+                                kObject.destroy();
+                            }
+                        });
+                        value += 0.5;
+                    }
+                }
+
+                start = System.nanoTime();
                 for (int i = 0; i < stairs; i++) {
                     final int ii=i;
-                    model.lookupAllTimes( universekeys[ii], times[ii], uid, new KCallback<KObject[]>() {
+                    model.lookupAllTimes( universekeys[0], times[ii], uid, new KCallback<KObject[]>() {
                         @Override
                         public void on(KObject[] kObjects) {
                             double value;
-                            value = steps * ii*2;
+                            if(ii==0) {
+                                value = steps * ii * 2;
+                            }
+                            else{
+                                value= steps * ii*3;
+                            }
                             for (int k = 0; k < kObjects.length; k++) {
                                 double v = (Double) kObjects[k].get(attribute);
                                 kObjects[k].destroy();
                                 if (value != v) {
-                                    System.out.println("Error in reading " + kObjects[k].now() + " universe id: " + ii + " expected: " + value + " got: " + v);
+                                    System.out.println("1- Error in reading " + kObjects[k].now() + " universe id: " + universekeys[0] + " expected: " + value + " got: " + v);
                                 }
                                 value += 0.5;
                                 cdt2.countDown();
                             }
-                            long x = valuesToInsert - cdt2.getCount();
-                            if (x >= compare[0] || (x > 0 && x % 50000000 == 0)) {
-                                double end2 = System.nanoTime();
-                                double speed2 = (end2 - finalStart);
-                                double speed3 = speed2 / (x);
-                                double perm = 1000000.0 / speed3;
-                                if (x >= compare[0]) {
-                                    compare[0] = compare[0] * 2;
-                                }
-                              //  System.out.println("Count " + (x / 1000000) + "M, read pace: " + formatter.format(speed3) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
-                            }
                         }
                     });
                 }
-
-
                 try {
                     cdt2.await();
                 } catch (InterruptedException e) {
@@ -266,24 +224,63 @@ public class StairTest {
                 perm = 1000000.0 / speed;
                 res[1] = perm;
 
+
+
+
+                start = System.nanoTime();
+                //  counter.set(0);
+
+                for (int i = 0; i < stairs; i++) {
+                    final int ii=i;
+                    model.lookupAllTimes( universekeys[stairs-1], times[ii], uid, new KCallback<KObject[]>() {
+                        @Override
+                        public void on(KObject[] kObjects) {
+                            double value;
+                            value = steps * ii*2;
+                            for (int k = 0; k < kObjects.length; k++) {
+                                double v = (Double) kObjects[k].get(attribute);
+                                kObjects[k].destroy();
+                                if (value != v) {
+                                    System.out.println("5- Error in reading " + kObjects[k].now() + " universe id: " + universekeys[stairs-1] + " expected: " + value + " got: " + v);
+                                }
+                                value += 0.5;
+                                cdt3.countDown();
+                            }
+                        }
+                    });
+                }
+
+
+                try {
+                    cdt3.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                end = System.nanoTime();
+                speed = (end - start) / (valuesToInsert);
+                perm = 1000000.0 / speed;
+                res[2] = perm;
+
+
+
           //      System.out.println("Count " + (valuesToInsert / 1000000) + "M, read pace: " + formatter.format(speed) + " ns/value, avg speed:  " + formatter.format(perm) + " kv/s");
-                cdt3.countDown();
+                cdt4.countDown();
 
 
             }
         });
 
 
-        cdt3.await();
-        final CountDownLatch cdt4 = new CountDownLatch(1);
+        cdt4.await();
+        final CountDownLatch cdt5 = new CountDownLatch(1);
         model.disconnect(new KCallback() {
             @Override
             public void on(Object o) {
            //     System.out.println("Test over");
-                cdt4.countDown();
+                cdt5.countDown();
             }
         });
-        cdt4.await();
+        cdt5.await();
 
         return res;
 
